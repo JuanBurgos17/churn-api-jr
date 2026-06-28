@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pkl
+*.csv
+*.xlsx
+.env
+.vscode/
+.idea/
+*.ipynb_checkpoints
+mlruns/
