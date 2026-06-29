@@ -4,8 +4,8 @@ import joblib
 import pandas as pd
 
 # Carga modelo y encoder al iniciar la API
-model = joblib.load("models/churn.pkl")
-encoder = joblib.load("models/encoder.pkl")
+model = joblib.load("src/models/churn.pkl")
+encoder = joblib.load("src/models/encoder.pkl")
 
 app = FastAPI(title="Churn Prediction API")
 
