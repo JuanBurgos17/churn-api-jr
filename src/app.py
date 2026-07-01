@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Literal
 import joblib
 import pandas as pd
 
@@ -13,7 +14,7 @@ class ChurnInput(BaseModel):
     tenure: int
     MonthlyCharges: float
     TotalCharges: float
-    Contract: str # "Month-to-month", "One year", "Two year"
+    Contract: Literal['Month-to-month', 'One year', 'Two year'] # ← Esto valida
 
 @app.get("/")
 def read_root():
@@ -21,16 +22,11 @@ def read_root():
 
 @app.post("/predict")
 def predict_churn(data: ChurnInput):
-    # 1. Convertir input a DataFrame
-    input_df = pd.DataFrame([data.dict()])
-
-    # 2. Encodear Contract igual que en training
-    input_df['Contract'] = encoder.transform(input_df['Contract'])
-
-    # 3. Predecir probabilidad de churn
-    prob = model.predict_proba(input_df)[0][1] # Probabilidad de clase 1 = Churn
-
-    return {
-        "churn_probability": round(float(prob), 3),
-        "will_churn": bool(prob > 0.5)
-    }
+    try:
+        input_df = pd.DataFrame([data.model_dump()]) # ← model_dump() en vez de dict()
+        input_df['Contract'] = encoder.transform(input_df['Contract'])
+        prediction = model.predict(input_df)[0]
+        proba = model.predict_proba(input_df)[0][1]
+        return {"churn_probability": float(proba), "will_churn": bool(prediction)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error en predicción: {str(e)}")
